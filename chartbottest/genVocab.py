@@ -3,8 +3,8 @@ import os
 VOCAB_FILE = "./corpus/vocab.txt"
 filename = "./corpus/english_context.txt"
 
-bos = "_bos_"
-eos = "_eos_"
+bos = "bos_"
+eos = "_eos"
 
 v_set = set()
 with open(filename,'r') as f:
