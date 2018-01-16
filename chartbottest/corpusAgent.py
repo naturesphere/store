@@ -7,9 +7,11 @@ class CorpusAgent:
         self.eos = "_eos"
         self.src_file = src_file
         self.vocab_file = vocab_file
+        self.dataset = tf.data.TextLineDataset(src_file)
         self.gen_vocab()
 
     def gen_vocab(self, src_file=None, vocab_file=None):
+        
         if vocab_file == None:
             vocab_file = self.vocab_file
         if src_file == None:
@@ -35,11 +37,10 @@ class CorpusAgent:
         if src_file == None:
             src_file = self.src_file
 
-        self.dataset = tf.data.TextLineDataset(src_file)
         self.dataset = self.dataset.map(lambda x: tf.py_func(lambda x: x.lower(), [x], tf.string, stateful=False))
         self.dataset = self.dataset.map(lambda x: tf.constant(self.bos+" ") + x + tf.constant(" "+self.eos))
         self.dataset = self.dataset.map(lambda x: tf.string_split([x]).values)
-        leng = self.dataset_len(self.dataset)
+        leng = self.dataset_len()
         ds1 = self.dataset.take(leng-1)
         ds2 = self.dataset.skip(1)
         self.dataset = tf.data.Dataset.zip((ds1, ds2))
@@ -54,8 +55,8 @@ class CorpusAgent:
         return self.dataset.padded_batch(batch_size,(tf.TensorShape([None]), tf.TensorShape([None])))
 
 
-    def dataset_len(self, dataset):
-        it = dataset.make_one_shot_iterator()
+    def dataset_len(self):
+        it = (self.dataset).make_one_shot_iterator()
         next_element = it.get_next()
         count = 0
         with tf.Session() as sess:
